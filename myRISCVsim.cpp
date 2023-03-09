@@ -24,7 +24,7 @@ using namespace std;
 static unsigned int X[32];
 // flags
 // memory
-static char MEM[4000];
+static int MEM[4000];
 uint32_t IR;
 uint32_t PC = 0x0;
 // intermediate datapath and control path signals
@@ -34,11 +34,11 @@ static unsigned int operand2;
 uint32_t opcode;
 uint32_t funct3;
 uint32_t funct7;
-uint32_t imm_i;
-uint32_t imms;
-uint32_t immb;
-uint32_t imm_u;
-uint32_t immj;
+int32_t imm_i;
+int32_t imms;
+int32_t immb;
+int32_t imm_u;
+int32_t immj;
 void run_riscvsim()
 {
   while (1)
@@ -105,7 +105,7 @@ void swi_exit()
 // reads from the instruction memory and updates the instruction register
 void fetch()
 {
-  IR = (int)(MEM + PC);
+  IR = *(MEM + PC);
 
   // Increment the program counter
   PC += 4;
@@ -125,18 +125,23 @@ void decode()
 
   // uint32_t imm_b = ((int32_t)IR >> 20) & 0xFFF; // Extract immediate for B format
   immb = 0;
-  immb |= ((IR >> 31) & 0x1) << 12; // imm[12]
+  immb |= ((IR >> 31) ) << 12; // imm[12]
   immb |= ((IR >> 7) & 0x1) << 11;  // imm[11]
-  immb |= ((IR >> 25) & 0x3f) << 6; // imm[10:5]
+  immb |= ((IR >> 25) & 0x3f) << 5; // imm[10:5]
   immb |= ((IR >> 8) & 0xf) << 1;   // imm[4:1]
 
   imm_u = IR & 0xFFFFF000; // Extract immediate for U format
 
-  immj = 0;
-  immj |= ((IR >> 31) & 0x1) << 20;  // imm[20]
+  // immj = 0;
+  // immj |= ((IR >> 31) & 0x1) << 20;  // imm[20]
+  // immj |= ((IR >> 12) & 0xff) << 12; // imm[19:12]
+  // immj |= ((IR >> 20) & 0x1) << 11;  // imm[11]
+  // immj |= ((IR >> 21) & 0x1f) << 1;  // imm[10:1]
+   immj = 0;
+  immj |= ((IR >> 31) ) << 20;  // imm[20]
   immj |= ((IR >> 12) & 0xff) << 12; // imm[19:12]
   immj |= ((IR >> 20) & 0x1) << 11;  // imm[11]
-  immj |= ((IR >> 21) & 0x1f) << 1;  // imm[10:1]
+  immj |= ((IR >> 21) & 0x3ff) << 1;  // imm[10:1]
 }
 // executes the ALU operation based on ALUop
 void execute()
