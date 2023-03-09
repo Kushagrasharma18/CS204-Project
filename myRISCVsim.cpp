@@ -24,8 +24,8 @@ using namespace std;
 static unsigned int X[32];
 // flags
 // memory
-static int MEM[4000];
-uint32_t IR;
+static char MEM[4000];
+int IR;
 uint32_t PC = 0x0;
 // intermediate datapath and control path signals
 static unsigned int instruction_word;
@@ -105,7 +105,7 @@ void swi_exit()
 // reads from the instruction memory and updates the instruction register
 void fetch()
 {
-  IR = *(MEM + PC);
+  IR = read_word(MEM,PC);
 
   // Increment the program counter
   PC += 4;
