@@ -21,24 +21,34 @@ Date:
 #include <inttypes.h>
 using namespace std;
 // Register file
-static unsigned int X[32];
+static int X[32];
 // flags
 // memory
-static char MEM[4000];
-int IR;
-uint32_t PC = 0x0;
+static unsigned char MEM[4000];
+static int IR;
+static unsigned int PC = 0x00000000;
+static int stackPointer = 4000;
 // intermediate datapath and control path signals
 static unsigned int instruction_word;
 static unsigned int operand1;
 static unsigned int operand2;
+static unsigned int control;
+static int imm;
+static int Rs1;
+static int Rs2;
+static int Rd;
+static int Rz;
+static int Ry;
+static int Rm;
 uint32_t opcode;
-uint32_t funct3;
-uint32_t funct7;
-int32_t imm_i;
-int32_t imms;
-int32_t immb;
-int32_t imm_u;
-int32_t immj;
+// uint32_t funct3;
+// uint32_t funct7;
+// int32_t immi;
+// int32_t imms;
+// int32_t immb;
+// int32_t imm_u;
+// int32_t immj;
+static int clock = 0;
 void run_riscvsim()
 {
   while (1)
@@ -55,6 +65,15 @@ void run_riscvsim()
 // reset all registers and memory content to 0
 void reset_proc()
 {
+  for (int i = 0; i < 32; i++)
+  {
+    X[i] = 0x00000000;
+  }
+  X[2] = stackPointer;
+  for (int i = 0; i < 4000; i++)
+  {
+    MEM[i] = 0x00000000;
+  }
 }
 
 // load_program_memory reads the input memory, and pupulates the instruction
@@ -71,9 +90,16 @@ void load_program_memory(char *file_name)
   }
   while (fscanf(fp, "%x %x", &address, &instruction) != EOF)
   {
+    if (instruction == 0xffffffff)
+      continue;
     write_word(MEM, address, instruction);
   }
   fclose(fp);
+  for (int i = 0; i < 32; i++)
+  {
+    X[i] = 0x00000000;
+  }
+  X[2] = stackPointer;
 }
 
 // writes the data memory in "data_out.mem" file
@@ -105,191 +131,444 @@ void swi_exit()
 // reads from the instruction memory and updates the instruction register
 void fetch()
 {
-  IR = read_word(MEM,PC);
+  IR = read_word(MEM, PC);
 
   // Increment the program counter
   PC += 4;
 }
 // reads the instruction register, reads operand1, operand2 fromo register file, decides the operation to be performed in execute stage
+int op_code(int i)
+{
+  int temp = 0;
+  temp = (i & 0x7f);
+  return temp;
+}
+int imm_i(int i)
+{
+  int temp = 0;
+  temp |= (i >> 25) << 5;
+  return temp;
+}
+int imm_s(int i)
+{
+  int temp = 0x00000000;
+  temp = ((i >> 7) & 0x1F);
+  temp |= (i >> 25) << 5;
+  return temp;
+}
+int imm_b(int i)
+{
+  int temp = 0;
+  temp |= ((IR >> 31)) << 12;       // imm[12]
+  temp |= ((IR >> 7) & 0x1) << 11;  // imm[11]
+  temp |= ((IR >> 25) & 0x3f) << 5; // imm[10:5]
+  temp |= ((IR >> 8) & 0xf) << 1;   // imm[4:1]
+  return temp;
+}
+int imm_u(int i)
+{
+  int temp = 0;
+  temp = i & 0xfffff000;
+  return temp;
+}
+int imm_j(int i)
+{
+  int temp = 0;
+  temp |= ((i >> 31)) << 20;        // imm[20]
+  temp |= ((i >> 12) & 0xff) << 12; // imm[19:12]
+  temp |= ((i >> 20) & 0x1) << 11;  // imm[11]
+  temp |= ((i >> 21) & 0x3ff) << 1; // imm[10:1]
+  return temp;
+}
+int func_7(int i)
+{
+  int temp = 0;
+  temp = (i >> 25) << 5;
+  return temp;
+}
+int func_3(int i)
+{
+  int temp = 0;
+  temp = (i >> 25) & 0x7;
+  return temp;
+}
+int r_s_1(int i)
+{
+  int temp = 0;
+  temp = (i >> 15) & 0x1f;
+  return temp;
+}
+int r_s_2(int i)
+{
+  int temp = 0;
+  temp = (i >> 20) & 0x1f;
+  return temp;
+}
+int r_d(int i)
+{
+  int temp = 0;
+  temp = (i >> 7) & 0x1f;
+  return temp;
+}
+void r_type(int i)
+{
+  Rs1 = X[r_s_1(i)];
+  Rs2 = X[r_s_2(i)];
+  int funct3 = func_3(i);
+  int funct7 = func_7(i);
+  Rd = r_d(i);
+  switch (funct3)
+  {
+  case 0:
+    switch (funct7)
+    {
+    case 0:                                             // ADD
+      control = 1;
+      break;
+
+    case 32:                                            // SUB
+      control = 2;
+      break;
+
+    default:
+      cout << "Wrong function 7 value" << endl;
+
+      break;
+    }
+    break;
+
+  case 1:                                               // sll
+    control = 3;
+    break;
+
+  case 2:                                               // slt
+    control = 4;
+    break;
+
+  case 4:                                               // xor
+    control = 5;
+    break;
+
+  case 5:
+
+    switch (funct7)
+    {
+    case 0:                                             // srl
+      control = 6;
+      break;
+
+    case 32:                                            // sra
+      control = 7;
+      break;
+
+    default:
+      cout << "Wrong function 7 value" << endl;
+      break;
+    }
+    break;
+
+  case 6:                                               // or
+    control = 8;
+    break;
+
+  case 7:                                               // AND
+    control = 9;
+    break;
+
+  default:
+    cout << "Wrong function 3 value" << endl;
+    break;
+  }
+}
+void i_type(int i)
+{
+  imm = imm_i(i);
+  Rs1 = X[r_s_1(i)];
+  int funct3 = func_3(i);
+  Rd = r_d(i);
+  int opc = op_code(i);
+  if (opc == 19)
+  {
+    switch (funct3)
+    {
+    case 0:                                             // addi
+      control = 10;
+      break;
+
+    case 6:                                             // ori
+      control = 11;
+      break;
+
+    case 7:                                             // andi
+      control = 12;
+      break;
+
+    default:
+      cout << "Wrong function 3 value" << endl;
+      break;
+    }
+  }
+  else if (opc == 3)
+  {
+    switch (funct3)
+    {
+    case 0:                                             // lb
+      control = 13;
+      break;
+
+    case 1:                                             // lh
+      control = 14;
+      break;
+
+    case 2:                                             // lw
+      control = 15;
+      break;
+
+    default:
+      cout << "Wrong function 3 value" << endl;
+      break;
+    }
+  }
+  else
+  {
+    control = 16;                                       // jalr
+  }
+}
+void s_type(int i)
+{
+  imm = imm_s(i);
+  Rs2 = r_s_2(i);
+  Rs1 = r_s_1(i);
+  int funct3 = func_3(i);
+  switch (funct3)
+  {
+  case 0x0:                                             // sb
+    control = 17;
+    break;
+
+  case 0x1:                                             // sh
+    control = 18;
+    break;
+
+  case 0x2:                                             // sw
+    control = 19;
+    break;
+
+  default:
+    cout << "Wrong function 3 value" << endl;
+    break;
+  }
+}
+void b_type(int i)
+{
+  imm = imm_b(i);
+  Rs2 = r_s_2(i);
+  Rs1 = r_s_1(i);
+  int funct3 = func_3(i);
+  switch (funct3)
+  {
+  case 0x0:                                             // beq
+    control = 20;
+    break;
+
+  case 0x1:                                             // bne
+    control = 21;
+    break;
+
+  case 0x4:                                             // blt
+    control = 22;
+    break;
+
+  case 0x5:                                             // bge
+    control = 23;
+    break;
+
+  default:
+    cout << "Wrong function 3 value" << endl;
+    break;
+  }
+}
+void u_type(int i)
+{
+  imm = imm_u(i);
+  Rd = r_d(i);
+  int opc = op_code(i);
+  if (opc == 55)
+  {
+    control = 24;                                       // lui
+  }
+  else
+  {
+    control = 25;                                       // auipc
+  }
+}
+void j_type(int i)
+{
+  imm = imm_j(i);
+  Rd = r_d(i);
+  control = 26;                                       //jal
+}
 void decode()
 {
-  opcode = IR & 0x7F;        // Extract opcode
-  funct3 = (IR >> 12) & 0x7; // Extract funct3
-  funct7 = IR >> 25;         // Extract funct7
-  imm_i = (int32_t)IR >> 20; // Extract immediate for I format
-  // uint32_t imm_s = ((int32_t)IR >> 20) & 0xFFF; // Extract immediate for S format
-
-  // Assume that "instruction" variable contains the S-type instruction
-  imms = ((IR >> 7) & 0x1F); // Extract bits 11-5
-  imms |= (IR >> 25) << 5;   // Extract bits 31-25 and shift left by 5
-
-  // uint32_t imm_b = ((int32_t)IR >> 20) & 0xFFF; // Extract immediate for B format
-  immb = 0;
-  immb |= ((IR >> 31) ) << 12; // imm[12]
-  immb |= ((IR >> 7) & 0x1) << 11;  // imm[11]
-  immb |= ((IR >> 25) & 0x3f) << 5; // imm[10:5]
-  immb |= ((IR >> 8) & 0xf) << 1;   // imm[4:1]
-
-  imm_u = IR & 0xFFFFF000; // Extract immediate for U format
-
-  // immj = 0;
-  // immj |= ((IR >> 31) & 0x1) << 20;  // imm[20]
-  // immj |= ((IR >> 12) & 0xff) << 12; // imm[19:12]
-  // immj |= ((IR >> 20) & 0x1) << 11;  // imm[11]
-  // immj |= ((IR >> 21) & 0x1f) << 1;  // imm[10:1]
-   immj = 0;
-  immj |= ((IR >> 31) ) << 20;  // imm[20]
-  immj |= ((IR >> 12) & 0xff) << 12; // imm[19:12]
-  immj |= ((IR >> 20) & 0x1) << 11;  // imm[11]
-  immj |= ((IR >> 21) & 0x3ff) << 1;  // imm[10:1]
+  opcode = op_code(IR);                               // Extract opcode
+  if(opcode==51){
+    r_type(IR);
+  }
+  else if(opcode==19||opcode==3||opcode==103){
+    i_type(IR);
+  }
+  else if(opcode==35){
+    s_type(IR);
+  }
+  else if(opcode==99){
+    b_type(IR);
+  }
+  else if(opcode==55||opcode==23){
+    u_type(IR);
+  }
+  else if(opcode==111){
+    j_type(IR);
+  }
+  else{
+    cout<<"Wrong OPcode!!"<<endl;
+  }
+  
+  
 }
 // executes the ALU operation based on ALUop
 void execute()
 {
-  switch (opcode)
+  switch (control)
   {
-  case 0x33:
-    switch (funct3)
-    {
-    case 0x0:
-      switch (funct7)
-      {
-      case 0x0: // ADD
-        break;
+  case 1:
+    Rz=Rs1+Rs2;                           //ADD
+    break;
 
-      case 0x2: // SUB
-        break;
+  case 2:
+    Rz=Rs1-Rs2;                           //SUB
+    break;
 
-      default:
-        cout << "Wrong function 7 value" << endl;
-        break;
-      }
-      break;
+  case 3:
+    Rz=Rs1<<Rs2;                          //SLL
+    break;
 
-    case 0x1: // sll
-      break;
+  case 4:
+    Rz=(Rs1<Rs2)?1:0;                     //SLT
+    break;
 
-    case 0x2: // slt
-      break;
+  case 5:
+    Rz=Rs1^Rs2;                           //XOR
+    break;
 
-    case 0x4: // xor
-      break;
+  case 6:
+    Rz=(int)((unsigned int)Rs1>>Rs2);     //SRL
+    break;
 
-    case 0x5:
-      switch (funct7)
-      {
-      case 0x0: // srl
-        break;
+  case 7: 
+    Rz=Rs1>>Rs2;                          //SRA
+    break;
 
-      case 0x2: // sra
-        break;
+  case 8:
+    Rz=Rs1|Rs2;                           //OR
+    break;
 
-      default:
-        cout << "Wrong function 7 value" << endl;
-        break;
-      }
-      break;
+  case 9:
+    Rz=Rs1&Rs2;                           //AND
+    break;
 
-    case 0x6: // or
-      break;
+  case 10:
+    Rz=Rs1+imm;                           //ADDI
+    break;
 
-    case 0x7: // AND
-      break;
+  case 11:
+    Rz=Rs1|imm;                           //ORI
+    break;
 
-    default:
-      cout << "Wrong function 3 value" << endl;
-      break;
+  case 12:
+    Rz=Rs1&imm;                           //ANDI
+    break;
+
+  case 13:
+    Rz=Rs1+imm;                           //LB
+    break;
+
+  case 14:
+    Rz=Rs1+imm;                           //LH
+    break;
+
+  case 15:
+    Rz=Rs1+imm;                           //LW
+    break;
+
+  case 16:
+    Rz=Rs1+imm;                           //JALR
+    break;
+
+  case 17:
+    Rz=Rs1+imm;                           //SB
+    Rm=Rs2;
+    break;
+
+  case 18:
+    Rz=Rs1+imm;                           //SH
+    Rm=Rs2;
+    break;
+
+  case 19:
+    Rz=Rs1+imm;                           //SW
+    Rm=Rs2;
+    break;
+
+  case 20:
+    if(Rs1==Rs2){                         //BEQ
+      Rz=1;
+    }
+    else{
+      Rz=0;
     }
     break;
 
-  case 0x13:
-    switch (funct3)
-    {
-    case 0x0: // addi
-      break;
-
-    case 0x6: // ori
-      break;
-
-    case 0x7: // andi
-      break;
-
-    default:
-      cout << "Wrong function 3 value" << endl;
-      break;
+  case 21:
+    if(Rs1!=Rs2){                         //BNE
+      Rz=1;
+    }
+    else{
+      Rz=0;
     }
     break;
 
-  case 0x03:
-    switch (funct3)
-    {
-    case 0x0: // lb
-      break;
-
-    case 0x1: // lh
-      break;
-
-    case 0x2: // lw
-      break;
-
-    default:
-      cout << "Wrong function 3 value" << endl;
-      break;
+  case 22:
+    if(Rs1<Rs2){                          //BLT
+      Rz=1;
     }
-
-    break;
-
-  case 0x23:
-    switch (funct3)
-    {
-    case 0x0: // sb
-      break;
-
-    case 0x1: // sh
-      break;
-
-    case 0x2: // sw
-      break;
-
-    default:
-      cout << "Wrong function 3 value" << endl;
-      break;
+    else{
+      Rz=0;
     }
     break;
 
-  case 0x63:
-    switch (funct3)
-    {
-    case 0x0: // beq
-      break;
-
-    case 0x1: // bne
-      break;
-
-    case 0x4: // blt
-      break;
-
-    case 0x5: // bge
-      break;
-
-    default:
-      cout << "Wrong function 3 value" << endl;
-      break;
+  case 23:
+    if(Rs1>=Rs2){                         //BGE
+      Rz=1;
+    }
+    else{
+      Rz=0;
     }
     break;
-  
-  case 0x6f://jal
+
+  case 24:
+    Rz=imm<<12;                           //LUI
     break;
 
-  case 0x37://lui
+  case 25:
+    Rz=imm;                               //AUIPC
     break;
 
-  case 0x17://auipc
-    break;
-  
-  case 0x67://jalr
+  case 26:
+                                          //JAL
     break;
 
+  default:
+    break;
   }
 }
 // perform the memory operation
@@ -301,14 +580,14 @@ void write_back()
 {
 }
 
-int read_word(char *mem, unsigned int address)
+int read_word(unsigned char *mem, unsigned int address)
 {
   int *data;
   data = (int *)(mem + address);
   return *data;
 }
 
-void write_word(char *mem, unsigned int address, unsigned int data)
+void write_word(unsigned char *mem, unsigned int address, unsigned int data)
 {
   int *data_p;
   data_p = (int *)(mem + address);
