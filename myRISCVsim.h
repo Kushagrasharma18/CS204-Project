@@ -107,18 +107,19 @@ void reset_proc()
 void load_program_memory()
 {
   FILE *fp;
-  unsigned int address, instruction;
+  unsigned int address=0, instruction;
   fp = fopen("machineCode.mc", "r");
   if (fp == NULL)
   {
     printf("Error opening input mem file\n");
     exit(1);
   }
-  while (fscanf(fp, "%x %x", &address, &instruction) != EOF)
+  while (fscanf(fp, "%x", &instruction) != EOF)
   {
     // if (instruction == 0xffffffff)
     //   continue;
     write_word(MEM, address, instruction);
+    address+=4;
   }
   fclose(fp);
   for (int i = 0; i < 32; i++)
@@ -259,7 +260,7 @@ void r_type(int i)
   int funct3 = func_3(i);
   int funct7 = func_7(i);
   Rd = r_d(i);
-  cout<<r_s_1(i)<<" "<<r_s_2(i)<<" "<<funct3<<" "<<funct7<<" "<<Rd<<endl;
+  cout<<"Rs1 "<<Rs1<<" "<<r_s_1(i)<<"Rs2 "<<Rs2<<" "<<r_s_2(i)<<"f3 "<<funct3<<"f7 "<<funct7<<"Rd "<<Rd<<endl;
   switch (funct3)
   {
   case 0:
@@ -267,10 +268,12 @@ void r_type(int i)
     {
     case 0:                                             // ADD
       control = 1;
+      cout<<"ADD\n";
       break;
 
     case 32:                                            // SUB
       control = 2;
+      cout<<"SUB\n";
       break;
 
     default:
@@ -282,14 +285,17 @@ void r_type(int i)
 
   case 1:                                               // sll
     control = 3;
+    cout<<"SLL\n";
     break;
 
   case 2:                                               // slt
     control = 4;
+    cout<<"SLT\n";
     break;
 
   case 4:                                               // xor
     control = 5;
+    cout<<"XOR\n";
     break;
 
   case 5:
@@ -298,6 +304,7 @@ void r_type(int i)
     {
     case 0:                                             // srl
       control = 6;
+      cout<<"SRL\n";
       break;
 
     case 32:                                            // sra
@@ -330,6 +337,7 @@ void i_type(int i)
   int funct3 = func_3(i);
   Rd = r_d(i);
   int opc = op_code(i);
+  cout<<"I "<<imm<<"Rs1 "<<Rs1<<" "<<r_s_1(i)<<"f3 "<<func_3(i)<<"Rd "<<Rd<<endl;
   if (opc == 19)
   {
     switch (funct3)
@@ -383,6 +391,7 @@ void s_type(int i)
   Rs2 = X[r_s_2(i)];
   Rs1 = X[r_s_1(i)];
   int funct3 = func_3(i);
+  cout<<"I "<<imm<<"Rs2 "<<Rs2<<" "<<r_s_2(i)<<" Rs1 "<<Rs1<<" "<<r_s_1(i)<<"f3 "<<func_3(i)<<endl;
   switch (funct3)
   {
   case 0x0:                                             // sb
@@ -408,6 +417,7 @@ void b_type(int i)
   Rs2 = X[r_s_2(i)];
   Rs1 = X[r_s_1(i)];
   int funct3 = func_3(i);
+  cout<<"I "<<imm<<"Rs2 "<<Rs2<<" "<<r_s_2(i)<<"Rs1 "<<Rs1<<" "<<r_s_1(i)<<"f3 "<<funct3<<endl;
   switch (funct3)
   {
   case 0x0:                                             // beq
@@ -436,6 +446,7 @@ void u_type(int i)
   imm = imm_u(i);
   Rd = r_d(i);
   int opc = op_code(i);
+  cout<<"I "<<imm<<" Rd "<<Rd<<" "<<endl;
   if (opc == 55)
   {
     control = 24;                                       // lui
@@ -450,6 +461,7 @@ void j_type(int i)
   imm = imm_j(i);
   Rd = r_d(i);
   control = 26;                                       //jal
+  cout<<"I "<<imm<<" Rd "<<Rd<<" "<<endl;
 }
 void decode()
 {
@@ -602,11 +614,11 @@ void execute()
     break;
 
   case 24:
-    Rz=imm<<12;                           //LUI
+    Rz=imm;                           //LUI
     break;
 
   case 25:
-    Rz=imm;                               //AUIPC
+    Rz=PC+imm-4;                               //AUIPC
     break;
 
   case 26:
@@ -673,14 +685,17 @@ void mem()
     }
   }
   else if(control==26){
+    cout<<PC<<"::: ";
     temp_PC=PC;
+    cout<<temp_PC<<":";
     PC-=4;
     PC+=imm;
+    cout<<PC<<endl;
   }
   else{
     Ry=Rz;
   }
-
+  X[0]=0;
 }
 // writes the results back to register file
 void write_back()
@@ -688,14 +703,24 @@ void write_back()
   if(control==17||control==18||control==19||control==20||control==21||control==22||control==23){
     return;
   }
-  else if(control==16||control==26){
-    X[Rd]==temp_PC;
+  else if(control==26){
+    cout<<X[Rd]<<":";
+    X[Rd]=temp_PC;
+    cout<<X[Rd]<<endl;
+  }
+  else if(control==16){
+    cout<<"*";
+    if(Rd!=0){
+      X[Rd]=temp_PC;
+      cout<<endl<<endl<<temp_PC<<endl<<endl;
+    }
   }
   else{
     cout<<X[Rd]<<":";
     X[Rd]=Ry;
-    cout<<X[Rd]<<endl;
+    cout<<X[Rd]<<endl<<endl<<endl;
   }
+  X[0]=0;
 }
 
 
@@ -709,5 +734,9 @@ void run_riscvsim()
     mem();
     write_back();
     cycle++;
+    // char ch;
+    // cin>>ch;
+    // cout<<"\n\n";
+    cout<<"Cycles:"<<cycle<<endl<<endl;
   }
 }
