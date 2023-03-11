@@ -1,5 +1,4 @@
 /* 
-
 The project is developed as part of Computer Architecture class
 Project Name: Functional Simulator for subset of RISCV Processor
 
@@ -16,12 +15,12 @@ Date:
 */
 
 
-#include "myRISCVSim.h" 
+#include "myRISCVsim.h" 
 #include <stdio.h>
 #include <stdlib.h>
 
 int main(int argc, char** argv) {
-  char* prog_mem_file; 
+  // char* prog_mem_file; 
   if(argc < 2) {
     printf("Incorrect number of arguments. Please invoke the simulator \n\t./myRISCVSim <input mem file> \n");
     exit(1);
@@ -30,7 +29,9 @@ int main(int argc, char** argv) {
   //reset the processor
   reset_proc();
   //load the program memory
-  load_program_memory(argv[1]);
+  // load_program_memory(argv[1]);
+  load_program_memory();
+
   //run the simulator
   run_riscvsim();
 
