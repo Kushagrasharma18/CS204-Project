@@ -7,9 +7,9 @@
 #include <inttypes.h>
 using namespace std;
 
-int main(){
-    
+int main()
+{
+  reset_proc();
   load_program_memory();
   run_riscvsim();
-  
 }
