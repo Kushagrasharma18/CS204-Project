@@ -62,7 +62,6 @@ static int error = 0;
 FILE *filePointer;
 clock_t clock_time;
 
-
 // it is used to set the reset values
 // reset all registers and memory content to 0
 int read_word(unsigned char *mem, unsigned int address)
@@ -78,6 +77,8 @@ void write_word(unsigned char *mem, unsigned int address, unsigned int data)
   data_p = (int *)(mem + address);
   *data_p = data;
 }
+
+
 void reset_proc()
 {
   for (int i = 0; i < 32; i++)
@@ -98,23 +99,31 @@ void load_program_memory()
   FILE *fp;
   unsigned int address = 0, instruction;
   fp = fopen("machineCode.mc", "r");
+
   if (fp == NULL)
   {
     printf("Error opening input mem file\n");
     exit(1);
   }
+
   while (fscanf(fp, "%x", &instruction) != EOF)
   {
-    // if (instruction == 0xffffffff)
-    //   continue;
     write_word(MEM, address, instruction);
     address += 4;
   }
+
+  // while (fscanf(fp, "%x %x",&address, &instruction) != EOF)
+  // {
+  //   write_word(MEM, address, instruction);
+  // }
+
   fclose(fp);
+
   for (int i = 0; i < 32; i++)
   {
     X[i] = 0x00000000;
   }
+
   X[2] = stackPointer;
 }
 
@@ -124,11 +133,13 @@ void write_data_memory()
   FILE *fp;
   unsigned int i;
   fp = fopen("MEM_out.mem", "w");
+
   if (fp == NULL)
   {
-    printf("Error opening dataout.mem file for writing\n");
+    printf("Error opening MEM_out.mem file for writing\n");
     return;
   }
+
   for (i = 0; i < 4000; i = i + 4)
   {
     fprintf(fp, "0x%x 0x%x (%d)\n", i, read_word(MEM, i), read_word(MEM, i));
@@ -139,9 +150,10 @@ void write_data_memory()
 
   if (fp == NULL)
   {
-    printf("Error opening dataout.mem file for writing\n");
+    printf("Error opening Registor_out.mem file for writing\n");
     return;
   }
+
   for (i = 0; i < 32; i++)
   {
 
@@ -154,13 +166,13 @@ void write_data_memory()
 void swi_exit()
 {
   write_data_memory();
-  cout << "Cycles: " << cycle << endl;
-  cout << "Errors: " << error << endl;
   filePointer = fopen("INS_OUT.mem", "a");
   fprintf(filePointer, "=====FINISH=====\n");
   fclose(filePointer);
-  clock_time = clock()-clock_time;
-  cout << "Time Taken: " << (float)clock_time/CLOCKS_PER_SEC << endl;
+  cout << "Cycles: " << cycle << endl;
+  cout << "Errors: " << error << endl;
+  clock_time = clock() - clock_time;
+  cout << "Time Taken: " << (float)clock_time / CLOCKS_PER_SEC << endl;
   exit(0);
 }
 
@@ -175,6 +187,10 @@ void fetch()
   // Increment the program counter
   PC += 4;
 }
+
+
+//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>DECODE STARTS<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
 // reads the instruction register, reads operand1, operand2 fromo register file, decides the operation to be performed in execute stage
 int op_code(int i)
 {
@@ -182,6 +198,8 @@ int op_code(int i)
   temp = (i & 0x7f);
   return temp;
 }
+
+
 int imm_i(int i)
 {
   int temp = 0;
@@ -189,6 +207,8 @@ int imm_i(int i)
   temp |= (i >> 20);
   return temp;
 }
+
+
 int imm_s(int i)
 {
   int temp = 0x00000000;
@@ -196,6 +216,8 @@ int imm_s(int i)
   temp |= ((i >> 25) << 5);
   return temp;
 }
+
+
 int imm_b(int i)
 {
   int temp = 0;
@@ -205,12 +227,16 @@ int imm_b(int i)
   temp |= (((i >> 8) & 0xf) << 1);   // imm[4:1]
   return temp;
 }
+
+
 int imm_u(int i)
 {
   int temp = 0;
   temp = i & 0xfffff000;
   return temp;
 }
+
+
 int imm_j(int i)
 {
   int temp = 0;
@@ -220,36 +246,48 @@ int imm_j(int i)
   temp |= (((i >> 21) & 0x3ff) << 1); // imm[10:1]
   return temp;
 }
+
+
 int func_7(int i)
 {
   int temp = 0;
   temp = (i >> 25);
   return temp;
 }
+
+
 int func_3(int i)
 {
   int temp = 0;
   temp = (i >> 12) & 0x7;
   return temp;
 }
+
+
 int r_s_1(int i)
 {
   int temp = 0;
   temp = (i >> 15) & 0x1f;
   return temp;
 }
+
+
 int r_s_2(int i)
 {
   int temp = 0;
   temp = (i >> 20) & 0x1f;
   return temp;
 }
+
+
 int r_d(int i)
 {
   int temp = 0;
   temp = (i >> 7) & 0x1f;
   return temp;
 }
+
+
 void r_type(int i)
 {
   Rs1 = X[r_s_1(i)];
@@ -350,6 +388,8 @@ void r_type(int i)
     break;
   }
 }
+
+
 void i_type(int i)
 {
   imm = imm_i(i);
@@ -428,6 +468,8 @@ void i_type(int i)
     fclose(filePointer);
   }
 }
+
+
 void s_type(int i)
 {
   imm = imm_s(i);
@@ -464,6 +506,8 @@ void s_type(int i)
     break;
   }
 }
+
+
 void b_type(int i)
 {
   imm = imm_b(i);
@@ -506,6 +550,8 @@ void b_type(int i)
     break;
   }
 }
+
+
 void u_type(int i)
 {
   imm = imm_u(i);
@@ -528,6 +574,8 @@ void u_type(int i)
     fclose(filePointer);
   }
 }
+
+
 void j_type(int i)
 {
   imm = imm_j(i);
@@ -538,6 +586,8 @@ void j_type(int i)
   fclose(filePointer);
   // cout << "I " << imm << " Rd " << Rd << " " << endl;
 }
+
+
 void decode()
 {
   opcode = op_code(IR); // Extract opcode
@@ -572,6 +622,10 @@ void decode()
     error++;
   }
 }
+
+
+
+
 // executes the ALU operation based on ALUop
 void execute()
 {
@@ -719,6 +773,10 @@ void execute()
     break;
   }
 }
+
+
+
+
 // perform the memory operation
 void mem()
 {
@@ -818,6 +876,10 @@ void mem()
   }
   X[0] = 0;
 }
+
+
+
+
 // writes the results back to register file
 void write_back()
 {
@@ -888,14 +950,16 @@ void run_riscvsim()
   fclose(filePointer);
   while (1)
   {
+    // char ch;
+    // cout<<"Press Enter to run the step!!";
+    // scanf("%c",&ch);
+
+
     fetch();
     decode();
     execute();
     mem();
     write_back();
     cycle++;
-    // char ch;
-    // cin>>ch;
-    // cout<<"\n\n";
   }
 }
