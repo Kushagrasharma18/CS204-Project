@@ -94,38 +94,7 @@ void reset_proc()
 
 // load_program_memory reads the input memory, and pupulates the instruction
 //  memory
-void load_program_memory()
-{
-  FILE *fp;
-  unsigned int address = 0, instruction;
-  fp = fopen("machineCode.mc", "r");
 
-  if (fp == NULL)
-  {
-    printf("Error opening input mem file\n");
-    exit(1);
-  }
-
-  while (fscanf(fp, "%x", &instruction) != EOF)
-  {
-    write_word(MEM, address, instruction);
-    address += 4;
-  }
-
-  // while (fscanf(fp, "%x %x",&address, &instruction) != EOF)
-  // {
-  //   write_word(MEM, address, instruction);
-  // }
-
-  fclose(fp);
-
-  for (int i = 0; i < 32; i++)
-  {
-    X[i] = 0x00000000;
-  }
-
-  X[2] = stackPointer;
-}
 
 // writes the data memory in "data_out.mem" file
 void write_data_memory()
@@ -942,11 +911,64 @@ void write_back()
   X[0] = 0;
 }
 
+
+void load_program_memory()
+{
+  FILE *fp;
+  unsigned int address = 0, instruction;
+  fp = fopen("machineCode.mc", "r");
+
+  if (fp == NULL)
+  {
+    printf("Error opening input mem file\n");
+    exit(1);
+  }
+
+  while (fscanf(fp, "%x", &instruction) != EOF)
+  {
+    write_word(MEM, address, instruction);
+    address += 4;
+  }
+
+  // while (fscanf(fp, "%x %x",&address, &instruction) != EOF)
+  // {
+  //   write_word(MEM, address, instruction);
+  // }
+
+  fclose(fp);
+
+  for (int i = 0; i < 32; i++)
+  {
+    X[i] = 0x00000000;
+  }
+
+  X[2] = stackPointer;
+  filePointer = fopen("INS_OUT.mem", "w");
+  fprintf(filePointer, "=====MACHINE CODE INTO UNDERSTANDABLE CODE=====\n");
+  fclose(filePointer);
+  PC=0;
+  static int j=read_word(MEM,PC);
+  while(1){
+    // printf("%x\n",j);
+    if(j==0xffffffff){
+      // cout<<"*"<<j<<endl;
+      break;
+    }
+    fetch();
+    decode();
+    j=read_word(MEM,PC);
+  }
+  PC=0;
+  fclose(fp);
+  
+}
+
+
 void run_riscvsim()
 {
   clock_time = clock();
-  filePointer = fopen("INS_OUT.mem", "w");
-  fprintf(filePointer, "=====START=====\n");
+  filePointer = fopen("INS_OUT.mem", "a");
+  fprintf(filePointer, "\n\n=====START OF RUNIING CODE=====\n\n");
   fclose(filePointer);
   while (1)
   {
