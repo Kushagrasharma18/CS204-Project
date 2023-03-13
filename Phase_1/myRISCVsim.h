@@ -121,11 +121,11 @@ void write_data_memory()
   }
   fclose(fp);
 
-  fp = fopen("Registor_out.mem", "w");
+  fp = fopen("Register_out.mem", "w");
 
   if (fp == NULL)
   {
-    printf("Error opening Registor_out.mem file for writing\n");
+    printf("Error opening Register_out.mem file for writing\n");
     return;
   }
 

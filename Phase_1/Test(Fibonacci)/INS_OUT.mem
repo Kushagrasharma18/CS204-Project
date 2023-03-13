@@ -1,0 +1,162 @@
+=====MACHINE CODE INTO UNDERSTANDABLE CODE=====
+INS:ADDI X3 X0 12 #X0=0 
+INS:ADD X1 X0 X0 #X0=0 , X0=0
+INS:ADDI X2 X0 1 #X0=0 
+INS:BNE X3 X0 0x8 #X3=0,X0=0 
+INS:ADD X2 X1 X0 #X1=0 , X0=0
+INS:ADDI X5 X0 2 #X0=0 
+INS:BLT X3 X5 0x18 #X3=0,X5=0 
+INS:ADD X4 X1 X2 #X1=0 , X2=4000
+INS:ADD X1 X2 X0 #X2=4000 , X0=0
+INS:ADD X2 X4 X0 #X4=0 , X0=0
+INS:ADDI X5 X5 1 #X5=0 
+INS:BEQ X0 X0 0xffffffec #X0=0,X0=0 
+
+
+=====START OF RUNIING CODE=====
+
+INS:ADDI X3 X0 12 #X0=0 
+Result: X3=12
+INS:ADD X1 X0 X0 #X0=0 , X0=0
+Result: X1=0
+INS:ADDI X2 X0 1 #X0=0 
+Result: X2=1
+INS:BNE X3 X0 0x8 #X3=12,X0=0 
+Result: PC=0x14 , PC=0x402d91
+INS:ADDI X5 X0 2 #X0=0 
+Result: X5=2
+INS:BLT X3 X5 0x18 #X3=12,X5=2 
+Result: No change
+INS:ADD X4 X1 X2 #X1=0 , X2=1
+Result: X4=1
+INS:ADD X1 X2 X0 #X2=1 , X0=0
+Result: X1=1
+INS:ADD X2 X4 X0 #X4=1 , X0=0
+Result: X2=1
+INS:ADDI X5 X5 1 #X5=2 
+Result: X5=3
+INS:BEQ X0 X0 0xffffffec #X0=0,X0=0 
+Result: PC=0x18 , PC=0x402d91
+INS:BLT X3 X5 0x18 #X3=12,X5=3 
+Result: No change
+INS:ADD X4 X1 X2 #X1=1 , X2=1
+Result: X4=2
+INS:ADD X1 X2 X0 #X2=1 , X0=0
+Result: X1=1
+INS:ADD X2 X4 X0 #X4=2 , X0=0
+Result: X2=2
+INS:ADDI X5 X5 1 #X5=3 
+Result: X5=4
+INS:BEQ X0 X0 0xffffffec #X0=0,X0=0 
+Result: PC=0x18 , PC=0x402d91
+INS:BLT X3 X5 0x18 #X3=12,X5=4 
+Result: No change
+INS:ADD X4 X1 X2 #X1=1 , X2=2
+Result: X4=3
+INS:ADD X1 X2 X0 #X2=2 , X0=0
+Result: X1=2
+INS:ADD X2 X4 X0 #X4=3 , X0=0
+Result: X2=3
+INS:ADDI X5 X5 1 #X5=4 
+Result: X5=5
+INS:BEQ X0 X0 0xffffffec #X0=0,X0=0 
+Result: PC=0x18 , PC=0x402d91
+INS:BLT X3 X5 0x18 #X3=12,X5=5 
+Result: No change
+INS:ADD X4 X1 X2 #X1=2 , X2=3
+Result: X4=5
+INS:ADD X1 X2 X0 #X2=3 , X0=0
+Result: X1=3
+INS:ADD X2 X4 X0 #X4=5 , X0=0
+Result: X2=5
+INS:ADDI X5 X5 1 #X5=5 
+Result: X5=6
+INS:BEQ X0 X0 0xffffffec #X0=0,X0=0 
+Result: PC=0x18 , PC=0x402d91
+INS:BLT X3 X5 0x18 #X3=12,X5=6 
+Result: No change
+INS:ADD X4 X1 X2 #X1=3 , X2=5
+Result: X4=8
+INS:ADD X1 X2 X0 #X2=5 , X0=0
+Result: X1=5
+INS:ADD X2 X4 X0 #X4=8 , X0=0
+Result: X2=8
+INS:ADDI X5 X5 1 #X5=6 
+Result: X5=7
+INS:BEQ X0 X0 0xffffffec #X0=0,X0=0 
+Result: PC=0x18 , PC=0x402d91
+INS:BLT X3 X5 0x18 #X3=12,X5=7 
+Result: No change
+INS:ADD X4 X1 X2 #X1=5 , X2=8
+Result: X4=13
+INS:ADD X1 X2 X0 #X2=8 , X0=0
+Result: X1=8
+INS:ADD X2 X4 X0 #X4=13 , X0=0
+Result: X2=13
+INS:ADDI X5 X5 1 #X5=7 
+Result: X5=8
+INS:BEQ X0 X0 0xffffffec #X0=0,X0=0 
+Result: PC=0x18 , PC=0x402d91
+INS:BLT X3 X5 0x18 #X3=12,X5=8 
+Result: No change
+INS:ADD X4 X1 X2 #X1=8 , X2=13
+Result: X4=21
+INS:ADD X1 X2 X0 #X2=13 , X0=0
+Result: X1=13
+INS:ADD X2 X4 X0 #X4=21 , X0=0
+Result: X2=21
+INS:ADDI X5 X5 1 #X5=8 
+Result: X5=9
+INS:BEQ X0 X0 0xffffffec #X0=0,X0=0 
+Result: PC=0x18 , PC=0x402d91
+INS:BLT X3 X5 0x18 #X3=12,X5=9 
+Result: No change
+INS:ADD X4 X1 X2 #X1=13 , X2=21
+Result: X4=34
+INS:ADD X1 X2 X0 #X2=21 , X0=0
+Result: X1=21
+INS:ADD X2 X4 X0 #X4=34 , X0=0
+Result: X2=34
+INS:ADDI X5 X5 1 #X5=9 
+Result: X5=10
+INS:BEQ X0 X0 0xffffffec #X0=0,X0=0 
+Result: PC=0x18 , PC=0x402d91
+INS:BLT X3 X5 0x18 #X3=12,X5=10 
+Result: No change
+INS:ADD X4 X1 X2 #X1=21 , X2=34
+Result: X4=55
+INS:ADD X1 X2 X0 #X2=34 , X0=0
+Result: X1=34
+INS:ADD X2 X4 X0 #X4=55 , X0=0
+Result: X2=55
+INS:ADDI X5 X5 1 #X5=10 
+Result: X5=11
+INS:BEQ X0 X0 0xffffffec #X0=0,X0=0 
+Result: PC=0x18 , PC=0x402d91
+INS:BLT X3 X5 0x18 #X3=12,X5=11 
+Result: No change
+INS:ADD X4 X1 X2 #X1=34 , X2=55
+Result: X4=89
+INS:ADD X1 X2 X0 #X2=55 , X0=0
+Result: X1=55
+INS:ADD X2 X4 X0 #X4=89 , X0=0
+Result: X2=89
+INS:ADDI X5 X5 1 #X5=11 
+Result: X5=12
+INS:BEQ X0 X0 0xffffffec #X0=0,X0=0 
+Result: PC=0x18 , PC=0x402d91
+INS:BLT X3 X5 0x18 #X3=12,X5=12 
+Result: No change
+INS:ADD X4 X1 X2 #X1=55 , X2=89
+Result: X4=144
+INS:ADD X1 X2 X0 #X2=89 , X0=0
+Result: X1=89
+INS:ADD X2 X4 X0 #X4=144 , X0=0
+Result: X2=144
+INS:ADDI X5 X5 1 #X5=12 
+Result: X5=13
+INS:BEQ X0 X0 0xffffffec #X0=0,X0=0 
+Result: PC=0x18 , PC=0x402d91
+INS:BLT X3 X5 0x18 #X3=12,X5=13 
+Result: PC=0x30 , PC=0x402d91
+=====FINISH=====
