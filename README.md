@@ -1,7 +1,8 @@
 # RISC-V-Simulator
 
 This is the repository for the RISC-V simulator code.
-This is the final project for the course CS-204 - Computer Architecture.
+This is the phase 1 of project for the course CS-204 - Computer Architecture.
+In this phase , we are designing and implementing the function simulator(32-bit) RISCV-32I ISA instruction.
 
 <br> 
 The team members are:
@@ -18,7 +19,7 @@ The simulator is written in cpp.
 <br>
 
 ### Testing the simulator
-To test the simulator, add a `.mc` file containing addresses of each instruction followed by the machine code of each instruction (or you can just write the machine code, and the code automatically give the address to the machine code, 0x0 to first instruction, 0x4 to second instruction and so on..) and run the program as described below. Example below
+To test the simulator, add a `machineCode.mc` file containing addresses of each instruction followed by the machine code of each instruction (or you can just write the machine code, and the code automatically give the address to the machine code, 0x0 to first instruction, 0x4 to second instruction and so on..) and run the program as described below. Example below
 
 ```
 0X0 0X00A00093
@@ -44,8 +45,8 @@ For running the code, in the file "myRISVsim.h" we have to comment and uncomment
 
 <br>
 
-This will create 3 output files (MEM_out.mem,INS_OUT.mem and Registor_out.mem) which represents the memory , instuctions runs and final registor values respectively.
+This will create 3 output files (MEM_out.mem,INS_OUT.mem and Registor_out.mem) which represents the data memory , instuctions runs and final register values respectively.
 
 <br>
 
-If you want to run the code by step, the uncomment the portion of the function run_riscvsim() in the file "myRISVsim.h".
+If you want to run the code by step, then uncomment the portion of the function run_riscvsim() in the file "myRISVsim.h".
