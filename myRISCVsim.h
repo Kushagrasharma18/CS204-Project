@@ -3,9 +3,15 @@
 The project is developed as part of Computer Architecture class
 Project Name: Functional Simulator for subset of ARM Processor
 
-Developer's Name:
-Developer's Email id:
-Date:
+Developer's Name:Vavadiya Harsh
+Developer's Email id:2021CSB1139@iitrpr.ac.in
+Developer's Name:Patel Het
+Developer's Email id:2021CSB1119@iitrpr.ac.in
+Developer's Name:Kushagra Sharma
+Developer's Email id:2021CSB1107@iitrpr.ac.in
+Developer's Name:Ayush Sahu
+Developer's Email id:2021CSB1077@iitrpr.ac.in
+
 
 */
 
@@ -924,13 +930,13 @@ void load_program_memory()
     exit(1);
   }
 
-  while (fscanf(fp, "%x", &instruction) != EOF)
+  while (fscanf(fp, "%x", &instruction) != EOF)   //USED WHEN JUST MACHINE CODE IS GIVEN AND NOT THE ADDRESS 
   {
     write_word(MEM, address, instruction);
     address += 4;
   }
 
-  // while (fscanf(fp, "%x %x",&address, &instruction) != EOF)
+  // while (fscanf(fp, "%x %x",&address, &instruction) != EOF)    //USED WHEN ADDRESS AND MACHINE CODE IS GIVEN
   // {
   //   write_word(MEM, address, instruction);
   // }
@@ -972,7 +978,7 @@ void run_riscvsim()
   fclose(filePointer);
   while (1)
   {
-    // char ch;
+    // char ch;                                                   //USED WHEN WE HAVE TO DO STEP WISE RUNNING
     // cout<<"Press Enter to run the step!!";
     // scanf("%c",&ch);
 
