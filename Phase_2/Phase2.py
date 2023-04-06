@@ -1828,10 +1828,12 @@ for i in range(32):
         print_regi_in_file.write("x["+str(i)+"]="+str(x[i])+"\n")
 print_regi_in_file.close()
 
-for j in memory.keys():
-    print(hex(j),":",memory[j]," (",int(memory[j], 16),")")
+# for j in memory.keys():
+#     print(hex(j),":",memory[j]," (",int(memory[j], 16),")")
 print_inst=open("Ins.txt",'w')
-print_inst.write(str(Instruct))
+for kuch_bhi in Instruct.keys():
+    print_inst.write(str(hex(kuch_bhi))+" "+str(Instruct[kuch_bhi])+"\n")
+# print_inst.write(str(Instruct))
 print_inst.close()
 new_file = open("MEM.txt", "w")
 # for line in Instruct:
