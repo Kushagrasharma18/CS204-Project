@@ -167,7 +167,7 @@ void fetch()
 //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>DECODE STARTS<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 // reads the instruction register, reads operand1, operand2 fromo register file, decides the operation to be performed in execute stage
-int op_code(int i)
+int op_code(int i) //calculating opcode from given binary instruction code
 {
   int temp = 0;
   temp = (i & 0x7f);
