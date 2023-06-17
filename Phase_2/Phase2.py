@@ -11,7 +11,7 @@ for i in range(1, 32):
 
 memory = {}
 
-
+# class for five steps of pipelining
 class five_steps:
     def __init__(self):
         self.buf = []
